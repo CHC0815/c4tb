@@ -1,5 +1,11 @@
+from dotenv import load_dotenv
+
+from bot.bot import run
+
+
 def main():
-    pass
+    load_dotenv()
+    run()
 
 
 if __name__ == "__main__":
