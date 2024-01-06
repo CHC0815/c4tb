@@ -36,12 +36,12 @@ def render_board(n):
     return bio
 
 
-async def start(update: Update, context: ContextTypes) -> None:
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     assert update.message is not None
     await update.message.reply_text("Hello, let's play some connect four!")
 
 
-async def start_game(update: Update, context: ContextTypes) -> None:
+async def start_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     assert update.message is not None
     keyboard = [[InlineKeyboardButton("⬆️", callback_data=f"{i}") for i in range(7)]]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -49,7 +49,7 @@ async def start_game(update: Update, context: ContextTypes) -> None:
     await update.message.reply_photo(render_board(-2), reply_markup=reply_markup)
 
 
-async def button(update: Update, context: ContextTypes) -> None:
+async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     assert query is not None
     await query.answer()
@@ -68,7 +68,7 @@ async def button(update: Update, context: ContextTypes) -> None:
 def run():
     application = Application.builder().token(os.environ.get("BOT_TOKEN") or "").build()
 
-    application.add_handler(CommandHandler("start", start))  # tpye: ignore
+    application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("start_game", start_game))
     application.add_handler(CallbackQueryHandler(button))
 
