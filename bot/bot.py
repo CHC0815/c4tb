@@ -1,8 +1,7 @@
 import logging
 import os
-from io import BytesIO
+import sqlite3
 
-from PIL import Image, ImageDraw, ImageFont
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -14,6 +13,8 @@ from telegram import (
 )
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 
+from bot.Game import ConnectFour
+
 # Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -22,18 +23,6 @@ logging.basicConfig(
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
-
-
-def render_board(n):
-    w, h = 400, 400
-    img = Image.new("RGB", (w, h), color=(255, 255, 255))
-    draw = ImageDraw.Draw(img)
-    draw.text((10, 10), f"{n}", fill="#888888")
-    draw.rectangle(((20, 20), (380, 380)), fill="#000000", outline="red")
-    bio = BytesIO()
-    img.save(bio, "JPEG")
-    bio.seek(0)
-    return bio
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -46,26 +35,36 @@ async def start_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     keyboard = [[InlineKeyboardButton("⬆️", callback_data=f"{i}") for i in range(7)]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await update.message.reply_photo(render_board(-2), reply_markup=reply_markup)
+    game = ConnectFour(update.message.chat_id)
+    game.save()
+
+    await update.message.reply_photo(game.render(), reply_markup=reply_markup)
 
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     assert query is not None
+    assert query.message is not None
     await query.answer()
 
     keyboard = [[InlineKeyboardButton("⬆️", callback_data=f"{i}") for i in range(7)]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
+    game = ConnectFour.load(query.message.chat_id)
+    game.step(int(query.data or 0))
+
     await query.edit_message_media(
         media=InputMediaPhoto(
-            media=render_board(query.data or -1),
+            media=game.render(),
         ),
         reply_markup=reply_markup,
     )
 
 
 def run():
+    db: sqlite3.Connection = sqlite3.connect("connectfourbot.db")
+    db.cursor().execute(open("bot/setup.sql").read())
+
     application = Application.builder().token(os.environ.get("BOT_TOKEN") or "").build()
 
     application.add_handler(CommandHandler("start", start))
