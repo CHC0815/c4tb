@@ -1,2 +1,4 @@
 pillow
 python-telegram-bot
+numpy
+python-dotenv
