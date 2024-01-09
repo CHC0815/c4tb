@@ -1,4 +1,5 @@
 import pickle
+import random
 import sqlite3
 from io import BytesIO
 
@@ -8,9 +9,12 @@ from PIL import Image, ImageDraw, ImageFont
 
 class GameState:
     def __init__(self, draw: bool, win: bool, winner: int | None):
-        self.draw = False
-        self.win = False
-        self.winner = None
+        self.draw = draw
+        self.win = win
+        self.winner = winner
+
+    def __str__(self):
+        return f"GameState(draw={self.draw}, win={self.win}, winner={self.winner})"
 
 
 class ConnectFour:
@@ -27,21 +31,38 @@ class ConnectFour:
         self.db.commit()
 
     def render(self) -> BytesIO:
-        w, h = 400, 400
+        w, h = 420, 360
         img = Image.new("RGB", (w, h), color=(255, 255, 255))
         draw = ImageDraw.Draw(img)
-        draw.rectangle(((20, 20), (380, 380)), fill="#000000", outline="red")
+
+        for row in range(6):
+            for col in range(7):
+                idx = row * 7 + col
+                if self.board[idx] == 0:
+                    continue
+                color = (255, 0, 0) if self.board[idx] == 1 else (255, 255, 0)
+                draw.ellipse(
+                    (
+                        col * 60 + 10,
+                        row * 60 + 10,
+                        col * 60 + 50,
+                        row * 60 + 50,
+                    ),
+                    fill=color,
+                )
+
         bio = BytesIO()
         img.save(bio, "JPEG")
         bio.seek(0)
         return bio
 
     def step(self, action: int) -> GameState:
-        state = self._half_step(action, 0)
+        state = self._half_step(action, 1)
         if state.draw or state.win:
             return state
 
-        state = self._half_step(action, 1)
+        choice = random.choice(self._get_valid_moves())
+        state = self._half_step(choice, 2)
         if state.draw or state.win:
             return state
 
@@ -53,7 +74,7 @@ class ConnectFour:
             return GameState(True, False, None)
 
         if action not in valid_moves:
-            return GameState(False, False, (player + 1) % 2)
+            return GameState(False, False, ((player + 1) % 2) + 1)
 
         self._drop_piece(action, player)
         if self._check_win_board(player):
@@ -63,7 +84,9 @@ class ConnectFour:
 
     @staticmethod
     def load(id: int) -> "ConnectFour":
-        return ConnectFour(id)
+        db: sqlite3.Connection = sqlite3.connect("connectfourbot.db")
+        game = db.execute("SELECT board FROM games WHERE id = ?", (id,)).fetchone()[0]
+        return pickle.loads(game)
 
     def _get_valid_moves(self) -> list[int]:
         valid_moves = [col for col in range(7) if self.board[col] == 0]

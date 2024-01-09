@@ -13,7 +13,7 @@ from telegram import (
 )
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 
-from bot.Game import ConnectFour
+from bot.Game import ConnectFour, GameState
 
 # Enable logging
 logging.basicConfig(
@@ -45,19 +45,26 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     assert query is not None
     assert query.message is not None
+    assert update.effective_chat is not None
     await query.answer()
 
     keyboard = [[InlineKeyboardButton("⬆️", callback_data=f"{i}") for i in range(7)]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     game = ConnectFour.load(query.message.chat_id)
-    game.step(int(query.data or 0))
+    state: GameState = game.step(int(query.data or 0))
+
+    if state.draw:
+        await update.effective_chat.send_message("Draw!")
+    elif state.win:
+        await update.effective_chat.send_message(f"{state.winner} won!")
+    game.save()
 
     await query.edit_message_media(
         media=InputMediaPhoto(
             media=game.render(),
         ),
-        reply_markup=reply_markup,
+        reply_markup=reply_markup if not state.draw and not state.win else None,
     )
 
 
