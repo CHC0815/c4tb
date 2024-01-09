@@ -21,3 +21,9 @@
 - ```
   sudo docker compose up -d
   ```
+
+## Tech stack
+- [python3.12](https://www.python.org/)
+- [sqlite3](https://docs.python.org/3/library/sqlite3.html) for game persistence
+- [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot) as telegram api wrapper
+- [pillow](https://pillow.readthedocs.io/en/stable/) for image creation
