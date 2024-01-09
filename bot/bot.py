@@ -29,7 +29,7 @@ def update_leaderboard(user_id, name, win, draw, winner) -> None:
     logger.info(f"Updating leaderboard for {user_id} ({name}) with win={win}, draw={draw}")
     db: sqlite3.Connection = sqlite3.connect("connectfourbot.db")
     db.cursor().execute(
-        f"INSERT IGNORE INTO leaderboard (id, name, wins, losses, draws) VALUES ({user_id}, {name}, 0, 0, 0)"
+        f"INSERT OR IGNORE INTO leaderboard (id, name, wins, losses, draws) VALUES ({user_id}, {name}, 0, 0, 0)"
     )
     if draw:
         db.cursor().execute(f"UPDATE leaderboard SET draws = draws + 1 WHERE id = {user_id}")
