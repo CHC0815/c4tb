@@ -4,7 +4,11 @@ import sqlite3
 from io import BytesIO
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
+
+import agents.onestep as onestep
+from agents.ConnectFourConfig import ConnectFourConfig
+from agents.Observation import Observation
 
 
 class GameState:
@@ -61,10 +65,7 @@ class ConnectFour:
         if state.draw or state.win:
             return state
 
-        # choice = random.choice(self._get_valid_moves())
-        import agents.onestep as onestep
-        from agents.ConnectFourConfig import ConnectFourConfig
-        from agents.Observation import Observation
+        # choice = random.choice(self._get_valid_moves()) random bot
 
         obs = Observation()
         obs.board = np.array(self.board).reshape((42,))
