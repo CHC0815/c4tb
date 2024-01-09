@@ -104,7 +104,7 @@ async def top(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def run():
     db: sqlite3.Connection = sqlite3.connect("connectfourbot.db")
-    db.cursor().execute(open("bot/setup.sql", "r").read())
+    db.cursor().executescript(open("bot/setup.sql", "r").read())
 
     application = Application.builder().token(os.environ.get("BOT_TOKEN") or "").build()
 
