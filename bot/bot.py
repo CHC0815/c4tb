@@ -60,12 +60,46 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.effective_chat.send_message(f"{state.winner} won!")
     game.save()
 
+    if state.draw or state.win:
+        assert update.effective_user is not None
+        db: sqlite3.Connection = sqlite3.connect("connectfourbot.db")
+        db.cursor().execute(
+            f"INSERT IGNORE INTO leaderboard (id, name, wins, losses, draws) VALUES ({update.effective_user.id}, {update.effective_user.full_name}, 0, 0, 0)"
+        )
+        if state.draw:
+            db.cursor().execute(
+                f"UPDATE leaderboard SET draws = draws + 1 WHERE id = {update.effective_user.id}"
+            )
+        elif state.win:
+            if state.winner == 1:
+                db.cursor().execute(
+                    f"UPDATE leaderboard SET wins = wins + 1 WHERE id = {update.effective_user.id}"
+                )
+            else:
+                db.cursor().execute(
+                    f"UPDATE leaderboard SET losses = losses + 1 WHERE id = {update.effective_user.id}"
+                )
+        db.commit()
+
     await query.edit_message_media(
         media=InputMediaPhoto(
             media=game.render(),
         ),
         reply_markup=reply_markup if not state.draw and not state.win else None,
     )
+
+
+async def top(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    assert update.message is not None
+    db: sqlite3.Connection = sqlite3.connect("connectfourbot.db")
+    rows = db.cursor().execute("SELECT * FROM leaderboard ORDER BY wins DESC LIMIT 10").fetchall()
+    s = ""
+    for i, row in enumerate(rows):
+        s += f"{i+1}. {row[1]}: {row[2]}\n"
+
+    you = db.cursor().execute("SELECT * FROM leaderboard WHERE id = 1").fetchone()
+    s += f"\nYou: {you[2]}"
+    await update.message.reply_text("Top 10 players:\n" + s)
 
 
 def run():
@@ -77,5 +111,6 @@ def run():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("start_game", start_game))
     application.add_handler(CallbackQueryHandler(button))
+    application.add_handler(CommandHandler("top", top))
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
