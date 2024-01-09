@@ -6,7 +6,7 @@
 
 ## Deploy
 - ```sh
-  git clone https://github.com/CHC0815/c4tb
+  git clone https://github.com/CHC0815/c4tb.git
   ```
 
 - ```sh
