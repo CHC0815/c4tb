@@ -91,13 +91,18 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def top(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     assert update.message is not None
+    assert update.effective_user is not None
     db: sqlite3.Connection = sqlite3.connect("connectfourbot.db")
     rows = db.cursor().execute("SELECT * FROM leaderboard ORDER BY wins DESC LIMIT 10").fetchall()
     s = ""
     for i, row in enumerate(rows):
         s += f"{i+1}. {row[1]}: {row[2]}\n"
 
-    you = db.cursor().execute("SELECT * FROM leaderboard WHERE id = 1").fetchone()
+    you = (
+        db.cursor()
+        .execute(f"SELECT * FROM leaderboard WHERE id = {update.effective_user.id}")
+        .fetchone()
+    )
     s += f"\nYou: {you[2]}"
     await update.message.reply_text("Top 10 players:\n" + s)
 
