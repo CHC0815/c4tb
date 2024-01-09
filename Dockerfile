@@ -10,11 +10,10 @@ ENV PIP_DEFAULT_TIMEOUT=100
 
 ENV BOT_TOKEN ${BOT_TOKEN}
 
-RUN mkdir -p /codebase /storage
-ADD . /codebase
-WORKDIR /codebase
+ADD main.py .
+ADD requirements.txt .
+ADD bot bot
 
 RUN pip3 install -r requirements.txt
-RUN chmod +x /codebase/main.py
 
-CMD python3 /codebase/main.py;
+CMD python3 main.py;
