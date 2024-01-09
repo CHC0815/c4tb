@@ -33,12 +33,14 @@ def update_leaderboard(user_id, name, win, draw, winner) -> None:
         (user_id, name, 0, 0, 0),
     )
     if draw:
-        db.cursor().execute(f"UPDATE leaderboard SET draws = draws + 1 WHERE id = ?", user_id)
+        db.cursor().execute(f"UPDATE leaderboard SET draws = draws + 1 WHERE id = ?", (user_id,))
     elif win:
         if winner == 1:
-            db.cursor().execute("UPDATE leaderboard SET wins = wins + 1 WHERE id = ?", user_id)
+            db.cursor().execute("UPDATE leaderboard SET wins = wins + 1 WHERE id = ?", (user_id,))
         else:
-            db.cursor().execute("UPDATE leaderboard SET losses = losses + 1 WHERE id = ?", user_id)
+            db.cursor().execute(
+                "UPDATE leaderboard SET losses = losses + 1 WHERE id = ?", (user_id,)
+            )
     db.commit()
 
 
