@@ -2,7 +2,7 @@
 
 ## Play
 
-[https://t.me/COPHEE_X4_BOT](t.me/COPHEE_X4_BOT)
+[t.me/COPHEE_X4_BOT](https://t.me/COPHEE_X4_BOT)
 
 ## Deploy
 - ```sh
