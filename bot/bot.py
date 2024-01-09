@@ -103,7 +103,8 @@ async def top(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         .execute(f"SELECT * FROM leaderboard WHERE id = {update.effective_user.id}")
         .fetchone()
     )
-    s += f"\nYou: {you[2]}"
+    if you is not None:
+        s += f"\nYou: {you[2]}"
     await update.message.reply_text("Top 10 players:\n" + s)
 
 
