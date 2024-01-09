@@ -7,7 +7,4 @@ services:
       dockerfile: Dockerfile
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
-    volumes:
-      - "/codebase:/codebase"
-      - "/storage:/storage"
     restart: always
