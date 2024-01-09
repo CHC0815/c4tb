@@ -25,6 +25,22 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
+def update_leaderboard(user_id, name, win, draw, winner) -> None:
+    logger.info(f"Updating leaderboard for {user_id} ({name}) with win={win}, draw={draw}")
+    db: sqlite3.Connection = sqlite3.connect("connectfourbot.db")
+    db.cursor().execute(
+        f"INSERT IGNORE INTO leaderboard (id, name, wins, losses, draws) VALUES ({user_id}, {name}, 0, 0, 0)"
+    )
+    if draw:
+        db.cursor().execute(f"UPDATE leaderboard SET draws = draws + 1 WHERE id = {user_id}")
+    elif win:
+        if winner == 1:
+            db.cursor().execute(f"UPDATE leaderboard SET wins = wins + 1 WHERE id = {user_id}")
+        else:
+            db.cursor().execute(f"UPDATE leaderboard SET losses = losses + 1 WHERE id = {user_id}")
+    db.commit()
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     assert update.message is not None
     await update.message.reply_text("Hello, let's play some connect four!")
@@ -62,24 +78,13 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     if state.draw or state.win:
         assert update.effective_user is not None
-        db: sqlite3.Connection = sqlite3.connect("connectfourbot.db")
-        db.cursor().execute(
-            f"INSERT IGNORE INTO leaderboard (id, name, wins, losses, draws) VALUES ({update.effective_user.id}, {update.effective_user.full_name}, 0, 0, 0)"
+        update_leaderboard(
+            update.effective_user.id,
+            update.effective_user.name,
+            state.win,
+            state.draw,
+            state.winner,
         )
-        if state.draw:
-            db.cursor().execute(
-                f"UPDATE leaderboard SET draws = draws + 1 WHERE id = {update.effective_user.id}"
-            )
-        elif state.win:
-            if state.winner == 1:
-                db.cursor().execute(
-                    f"UPDATE leaderboard SET wins = wins + 1 WHERE id = {update.effective_user.id}"
-                )
-            else:
-                db.cursor().execute(
-                    f"UPDATE leaderboard SET losses = losses + 1 WHERE id = {update.effective_user.id}"
-                )
-        db.commit()
 
     await query.edit_message_media(
         media=InputMediaPhoto(
@@ -96,7 +101,7 @@ async def top(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     rows = db.cursor().execute("SELECT * FROM leaderboard ORDER BY wins DESC LIMIT 10").fetchall()
     s = ""
     for i, row in enumerate(rows):
-        s += f"{i+1}. {row[1]}: {row[2]}\n"
+        s += f"{i+1}. {row[1]}: w{row[2]} l{row[3]} d{row[4]}\n"
 
     you = (
         db.cursor()
