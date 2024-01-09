@@ -13,6 +13,7 @@ ENV BOT_TOKEN ${BOT_TOKEN}
 ADD main.py .
 ADD requirements.txt .
 ADD bot bot
+ADD agents agents
 
 RUN pip3 install -r requirements.txt
 
