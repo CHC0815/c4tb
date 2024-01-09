@@ -70,7 +70,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def run():
     db: sqlite3.Connection = sqlite3.connect("connectfourbot.db")
-    db.cursor().execute(open("bot/setup.sql").read())
+    db.cursor().execute(open("bot/setup.sql", "r").read())
 
     application = Application.builder().token(os.environ.get("BOT_TOKEN") or "").build()
 

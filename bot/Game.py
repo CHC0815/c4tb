@@ -61,8 +61,17 @@ class ConnectFour:
         if state.draw or state.win:
             return state
 
-        choice = random.choice(self._get_valid_moves())
+        # choice = random.choice(self._get_valid_moves())
+        import agents.onestep as onestep
+        from agents.ConnectFourConfig import ConnectFourConfig
+        from agents.Observation import Observation
+
+        obs = Observation()
+        obs.board = np.array(self.board).reshape((42,))
+        choice = onestep.bot(obs, ConnectFourConfig(rows=6, cols=7))
+
         state = self._half_step(choice, 2)
+
         if state.draw or state.win:
             return state
 
